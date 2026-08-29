@@ -1,9 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite
- * A Vite plugin to compile and bundle standalone script and stylesheet assets
- * into specified output directories.
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -15,7 +13,7 @@
 // -----------------------------------------------------------------------------
 
 import { createHash } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import * as fs from 'node:fs';
 import * as p from 'node:path';
 import autoprefixer from 'autoprefixer';
 import { build } from 'esbuild';
@@ -127,10 +125,7 @@ export function standaloneAssetsPlugin(
           .replaceAll(p.sep, '/');
         const result = await s.compile(path);
         const outExt = s.outExt;
-        const hash = createHash('sha256')
-          .update(result)
-          .digest('hex')
-          .slice(0, 8);
+        const hash = hash_(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
           settings.hash === 'embed'
@@ -141,6 +136,10 @@ export function standaloneAssetsPlugin(
           `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
       });
     });
+  }
+
+  function hash_(content: string | Buffer) {
+    return createHash('sha256').update(content).digest('hex').slice(0, 8);
   }
 
   function log_(message: string, colorCode: string) {
@@ -170,12 +169,32 @@ export function standaloneAssetsPlugin(
       isBuild = config.command === 'build';
     },
     configureServer(server) {
-      const watcher = server.watcher;
       const strategies = settings.strategies;
-      watcher.add(strategies.map((s) => s.rootDir));
+      const watcher = server.watcher;
+      const hashes = new Map<string, string>();
+
+      for (const s of strategies) {
+        watcher.add(s.rootDir);
+
+        for (const path of globSync(`**/*{${s.exts.join(',')}}`, {
+          absolute: true,
+          cwd: s.rootDir,
+        })) {
+          hashes.set(path, hash_(fs.readFileSync(path)));
+        }
+      }
+
       let timer: NodeJS.Timeout | undefined;
 
       watcher.on('change', (path) => {
+        const hash = hash_(fs.readFileSync(path));
+
+        if (hashes.get(path) === hash) {
+          return;
+        }
+
+        hashes.set(path, hash);
+
         if (timer !== undefined) {
           clearTimeout(timer);
           timer = undefined;
@@ -221,7 +240,7 @@ export function standaloneAssetsPlugin(
           for (const ext of s.exts) {
             const candidate = p.resolve(s.rootDir, `${name}${ext}`);
 
-            if (existsSync(candidate)) {
+            if (fs.existsSync(candidate)) {
               target = candidate;
               break;
             }

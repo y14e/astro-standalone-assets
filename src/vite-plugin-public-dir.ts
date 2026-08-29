@@ -1,9 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
- * A Vite plugin to compile and bundle standalone script and stylesheet assets
- * into specified output directories.
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -186,10 +184,7 @@ export function standaloneAssetsPlugin(
           .replaceAll(p.sep, '/');
         const result = await s.compile(path);
         const outExt = s.outExt;
-        const hash = createHash('sha256')
-          .update(result)
-          .digest('hex')
-          .slice(0, 8);
+        const hash = hash_(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
           settings.hash === 'embed'
@@ -213,6 +208,10 @@ export function standaloneAssetsPlugin(
         await emit(path);
       });
     });
+  }
+
+  function hash_(content: string | Buffer) {
+    return createHash('sha256').update(content).digest('hex').slice(0, 8);
   }
 
   function log_(message: string, colorCode: string) {
@@ -242,12 +241,32 @@ export function standaloneAssetsPlugin(
       isBuild = config.command === 'build';
     },
     configureServer(server) {
+      const strategies = settings.strategies;
       const watcher = server.watcher;
-      const strategies = Object.values(settings.strategies);
-      watcher.add(strategies.map((s) => s.rootDir));
+      const hashes = new Map<string, string>();
+
+      for (const s of strategies) {
+        watcher.add(s.rootDir);
+
+        for (const path of globSync(`**/*{${s.exts.join(',')}}`, {
+          absolute: true,
+          cwd: s.rootDir,
+        })) {
+          hashes.set(path, hash_(fs.readFileSync(path)));
+        }
+      }
+
       let timer: NodeJS.Timeout | undefined;
 
-      watcher.on('change', async (path) => {
+      watcher.on('change', (path) => {
+        const hash = hash_(fs.readFileSync(path));
+
+        if (hashes.get(path) === hash) {
+          return;
+        }
+
+        hashes.set(path, hash);
+
         if (timer !== undefined) {
           clearTimeout(timer);
           timer = undefined;
