@@ -1,18 +1,22 @@
 {
   "name": "default",
-  "type": "module",
   "version": "1.0.1",
+  "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "astro": "astro",
     "build": "astro build",
-    "build:fix-sitemap": "node ./scripts/fix-sitemap.ts",
+    "postbuild": "npm run build:fix-sitemap && npm run build:copy-dir && npm run build:format1 && npm run build:format2",
     "build:copy-dir": "node ./scripts/copy-dir.ts",
+    "build:fix-sitemap": "node ./scripts/fix-sitemap.ts",
     "build:format1": "npx prettier --write ./build/**/*.html",
     "build:format2": "npx biome format --write ./build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "postbuild": "npm run build:fix-sitemap && npm run build:copy-dir && npm run build:format1 && npm run build:format2"
+    "dev": "astro dev",
+    "preview": "astro preview"
   },
+  "browserslist": [
+    "last 2 versions",
+    "not dead"
+  ],
   "dependencies": {
     "astro": "^7.2.8"
   },
@@ -30,10 +34,6 @@
     "stylelint-order": "^8.1.1",
     "stylelint-scss": "^7.2.0"
   },
-  "browserslist": [
-    "last 2 versions",
-    "not dead"
-  ],
   "allowScripts": {
     "@parcel/watcher": true,
     "esbuild": true
