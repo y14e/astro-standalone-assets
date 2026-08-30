@@ -222,13 +222,7 @@ export function standaloneAssetsPlugin(
       });
 
       server.middlewares.use(async (req, res, next) => {
-        const url = req.url;
-
-        if (!url) {
-          return next();
-        }
-
-        const path = url.split('?')[0];
+        const path = req.url?.split('?')[0];
 
         if (!path) {
           return next();
