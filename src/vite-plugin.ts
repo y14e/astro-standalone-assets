@@ -139,11 +139,7 @@ export function standaloneAssetsPlugin(
   }
 
   function hash_(data: string | Buffer): string {
-    return createHash('sha256')
-      .update(data)
-      .digest()
-      .readUIntBE(0, 5)
-      .toString(36);
+    return generateBase36Hash(data);
   }
 
   function log_(message: string, colorCode: string) {
@@ -153,7 +149,7 @@ export function standaloneAssetsPlugin(
   }
 
   function trim(string: string) {
-    return string.replace(/^[/\\]+|[/\\]+$/g, '');
+    return string.replace(/^\/+|\/+$/g, '');
   }
 
   function within(path: string, parent: string) {
@@ -288,4 +284,22 @@ export function standaloneAssetsPlugin(
       }
     },
   };
+}
+
+// -----------------------------------------------------------------------------
+// Utils
+// -----------------------------------------------------------------------------
+
+const BASE36_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+function generateBase36Hash(data: string | Buffer, length = 8): string {
+  let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
+  let result = '';
+
+  while (result.length < length) {
+    result = BASE36_CHARS[Number(n % 36n)] + result;
+    n /= 36n;
+  }
+
+  return result;
 }
