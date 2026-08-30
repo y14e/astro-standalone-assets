@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -55,10 +55,10 @@ export function standaloneAssets(
                     injected.setAttribute(attribute.name, attribute.value);
                   });
 
-                  const url = new URL(target[s.attribute], location.origin);
+                  const url = new URL(target.getAttribute(s.attribute) ?? '', location.origin);
                   url.searchParams.set('t', Date.now().toString());
                   injected.setAttribute(s.attribute, url.pathname + url.search);
-                  target.parentNode.insertBefore(injected, target.nextSibling);
+                  target.parentNode?.insertBefore(injected, target.nextSibling);
                 } catch {}
               });
             });
