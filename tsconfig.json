@@ -1,0 +1,33 @@
+// https://www.typescriptlang.org/tsconfig/
+{
+  "compilerOptions": {
+    // type-checking
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "strict": true,
+
+    // modules
+    "allowImportingTsExtensions": true,
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // emit
+    "noEmit": true,
+
+    // interop-constraints
+    "verbatimModuleSyntax": true,
+
+    // language-and-environment
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "target": "ES2024",
+
+    // completeness
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}

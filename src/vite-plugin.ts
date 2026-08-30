@@ -84,14 +84,16 @@ export function standaloneAssetsPlugin(
 
   async function compileScript(path: string): Promise<string> {
     return (
-      await build({
-        bundle: true,
-        entryPoints: [path],
-        minify: isBuild,
-        platform: 'browser',
-        write: false,
-      })
-    ).outputFiles[0].text;
+      (
+        await build({
+          bundle: true,
+          entryPoints: [path],
+          minify: isBuild,
+          platform: 'browser',
+          write: false,
+        })
+      ).outputFiles[0]?.text ?? ''
+    );
   }
 
   async function compileStylesheet(path: string): Promise<string> {
@@ -103,7 +105,9 @@ export function standaloneAssetsPlugin(
     return (
       await postcss([autoprefixer()]).process(result.css, {
         from: path,
-        map: isBuild ? false : { inline: true, prev: result.sourceMap },
+        map: isBuild
+          ? false
+          : { inline: true, prev: result.sourceMap ?? false },
       })
     ).css;
   }
@@ -225,6 +229,10 @@ export function standaloneAssetsPlugin(
         }
 
         const path = url.split('?')[0];
+
+        if (!path) {
+          return next();
+        }
 
         for (const s of settings.strategies) {
           const outDir = `/${s.outDir}/`;
