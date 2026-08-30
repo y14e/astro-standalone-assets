@@ -210,8 +210,8 @@ export function standaloneAssetsPlugin(
     });
   }
 
-  function hash_(content: string | Buffer) {
-    return createHash('sha256').update(content).digest('hex').slice(0, 8);
+  function hash_(data: string | Buffer) {
+    return createHash('sha256').update(data).digest('hex').slice(0, 8);
   }
 
   function log_(message: string, colorCode: string) {
