@@ -336,8 +336,8 @@ export function standaloneAssetsPlugin(
 const BASE36_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
 
 function generateBase36Hash(data: string | Buffer, length = 8): string {
-  let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
   let result = '';
+  let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
 
   while (result.length < length) {
     result = BASE36_CHARS[Number(n % 36n)] + result;
