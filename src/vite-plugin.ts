@@ -143,7 +143,7 @@ export function standaloneAssetsPlugin(
   }
 
   function hash_(data: string | Buffer): string {
-    return generateBase36Hash(data);
+    return generateBase36Hash(data, 8);
   }
 
   function log_(message: string, colorCode: string) {
@@ -294,7 +294,7 @@ export function standaloneAssetsPlugin(
 
 const BASE36_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
 
-function generateBase36Hash(data: string | Buffer, length = 8): string {
+function generateBase36Hash(data: string | Buffer, length: number): string {
   let result = '';
   let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
 
