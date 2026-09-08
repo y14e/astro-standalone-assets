@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.1
+ * @version 1.0.2
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -14,17 +14,15 @@
 
 import type { AstroIntegration } from 'astro';
 import {
+  type StandaloneAssetsPluginOptions as Options,
   standaloneAssetsPlugin as plugin,
-  type StandaloneAssetsPluginOptions,
 } from './vite-plugin';
 
 // -----------------------------------------------------------------------------
 // APIs
 // -----------------------------------------------------------------------------
 
-export function standaloneAssets(
-  options: StandaloneAssetsPluginOptions,
-): AstroIntegration {
+export function standaloneAssets(options: Options): AstroIntegration {
   function hmr(): string {
     return `
       (() => {
