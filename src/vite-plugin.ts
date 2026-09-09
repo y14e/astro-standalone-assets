@@ -188,7 +188,7 @@ export function standaloneAssetsPlugin(
         }
       }
 
-      let timer: NodeJS.Timeout | undefined;
+      let timer: ReturnType<typeof setTimeout> | undefined;
 
       watcher.on('change', (path) => {
         const hash = hash_(fs.readFileSync(path));
