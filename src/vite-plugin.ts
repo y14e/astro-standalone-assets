@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite
  *
- * @version 1.0.2
+ * @version 1.0.3
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -116,13 +116,13 @@ export function standaloneAssetsPlugin(
     bundleFiles = [];
     bundleMap = {};
 
-    settings.strategies.forEach(async (s) => {
+    for (const s of settings.strategies) {
       const rootDir = s.rootDir;
 
-      globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      for (const path of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
-      }).forEach(async (path) => {
+      })) {
         const relative = p.relative(rootDir, path);
         const withoutExt = p
           .join(s.outDir, relative.slice(0, -p.extname(relative).length))
@@ -138,8 +138,8 @@ export function standaloneAssetsPlugin(
         bundleFiles.push({ path: bundlePath, source: result });
         bundleMap[`/${rawPath}`] =
           `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
-      });
-    });
+      }
+    }
   }
 
   function hash_(data: string | Buffer): string {
@@ -266,9 +266,9 @@ export function standaloneAssetsPlugin(
       });
     },
     generateBundle() {
-      bundleFiles.forEach(({ path, source }) => {
+      for (const { path, source } of bundleFiles) {
         this.emitFile({ fileName: path, source, type: 'asset' });
-      });
+      }
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {

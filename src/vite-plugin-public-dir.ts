@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
  *
- * @version 1.0.2
+ * @version 1.0.3
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -145,9 +145,9 @@ export function standaloneAssetsPlugin(
 
     if (fs.existsSync(devCache)) {
       try {
-        JSON.parse(fs.readFileSync(devCache, 'utf-8')).forEach((f: string) => {
+        for (const f of JSON.parse(fs.readFileSync(devCache, 'utf-8'))) {
           if (!fs.existsSync(f)) {
-            return;
+            continue;
           }
 
           fs.rmSync(f, { force: true });
@@ -167,7 +167,7 @@ export function standaloneAssetsPlugin(
               break;
             }
           }
-        });
+        }
       } catch {}
 
       fs.rmSync(devCache, { force: true });
@@ -175,13 +175,13 @@ export function standaloneAssetsPlugin(
 
     devFiles.clear();
 
-    settings.strategies.forEach((s) => {
+    for (const s of settings.strategies) {
       const rootDir = s.rootDir;
 
-      globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      for (const path of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
-      }).forEach(async (path) => {
+      })) {
         const relative = p.relative(rootDir, path);
         const withoutExt = p
           .join(s.outDir, relative.slice(0, -p.extname(relative).length))
@@ -197,21 +197,19 @@ export function standaloneAssetsPlugin(
         bundleFiles.push({ path: bundlePath, source: result });
         bundleMap[`/${rawPath}`] =
           `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
-      });
-    });
+      }
+    }
   }
 
   async function prepareDev(): Promise<void> {
     devFiles.clear();
 
-    settings.strategies.forEach(async (s) => {
+    for (const s of settings.strategies) {
       globSync(`**/[^_]*{${s.exts.join(',')}}`, {
         absolute: true,
         cwd: s.rootDir,
-      }).forEach(async (path) => {
-        await emit(path);
-      });
-    });
+      }).map(emit);
+    }
   }
 
   function hash_(data: string | Buffer): string {
@@ -290,9 +288,7 @@ export function standaloneAssetsPlugin(
               globSync(`**/[^_]*{${s.exts.join(',')}}`, {
                 absolute: true,
                 cwd: rootDir,
-              }).forEach(async (p) => {
-                await emit(p);
-              });
+              }).map(emit);
             } else {
               await emit(path);
             }
@@ -307,9 +303,9 @@ export function standaloneAssetsPlugin(
       });
     },
     generateBundle() {
-      bundleFiles.forEach(({ path, source }) => {
+      for (const { path, source } of bundleFiles) {
         this.emitFile({ fileName: path, source, type: 'asset' });
-      });
+      }
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {

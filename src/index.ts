@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.2
+ * @version 1.0.3
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -42,9 +42,9 @@ export function standaloneAssets(options: Options): AstroIntegration {
             },
           ];
 
-          settings.forEach((s) => {
+          for (const s of settings) {
             hot.on('standalone-assets:' + s.eventName, (data) => {
-              document.querySelectorAll(s.element + '[' + s.attribute + '^="/' + data.dir + '/"]').forEach((target) => {
+              for (const target of document.querySelectorAll(s.element + '[' + s.attribute + '^="/' + data.dir + '/"]')) {
                 try {
                   const injected = document.createElement(s.element);
                   injected.addEventListener('load', () => target.remove());
@@ -58,9 +58,9 @@ export function standaloneAssets(options: Options): AstroIntegration {
                   injected.setAttribute(s.attribute, url.pathname + url.search);
                   target.parentNode?.insertBefore(injected, target.nextSibling);
                 } catch {}
-              });
+              }
             });
-          });
+          }
         }
       })();
     `;
