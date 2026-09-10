@@ -333,14 +333,14 @@ export function standaloneAssetsPlugin(
 // Utils
 // -----------------------------------------------------------------------------
 
-const BASE36_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
+const BASE36_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
 
 function generateBase36Hash(data: string | Buffer, length: number): string {
   let result = '';
   let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
 
   while (result.length < length) {
-    result = BASE36_CHARS[Number(n % 36n)] + result;
+    result = BASE36_ALPHABET[Number(n % 36n)] + result;
     n /= 36n;
   }
 
