@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.3
+ * @version 1.0.4
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -43,20 +43,23 @@ export function standaloneAssets(options: Options): AstroIntegration {
           ];
 
           for (const s of settings) {
-            hot.on('standalone-assets:' + s.eventName, (data) => {
-              for (const target of document.querySelectorAll(s.element + '[' + s.attribute + '^="/' + data.dir + '/"]')) {
+            const { attribute, element, eventName } = s;
+            hot.on('standalone-assets:' + eventName, (data) => {
+              for (const e of document.querySelectorAll(element + '[' + attribute + '^="/' + data.dir + '/"]')) {
                 try {
-                  const injected = document.createElement(s.element);
-                  injected.addEventListener('load', () => target.remove());
+                  const injected = document.createElement(element);
+                  injected.addEventListener('load', () => e.remove());
 
-                  [...target.attributes].filter((attribute) => attribute.name !== s.attribute).forEach((attribute) => {
-                    injected.setAttribute(attribute.name, attribute.value);
+                  [...e.attributes].filter((a) => a.name !== attribute).forEach((a) => {
+                    const { name, value } = a;
+                    injected.setAttribute(name, value);
                   });
 
-                  const url = new URL(target.getAttribute(s.attribute) ?? '', location.origin);
-                  url.searchParams.set('t', Date.now().toString());
-                  injected.setAttribute(s.attribute, url.pathname + url.search);
-                  target.parentNode?.insertBefore(injected, target.nextSibling);
+                  const url = new URL(e.getAttribute(attribute) ?? '', location.origin);
+                  const { pathname, search, searchParams } = url;
+                  searchParams.set('t', Date.now().toString());
+                  injected.setAttribute(attribute, pathname + search);
+                  e.parentNode?.insertBefore(injected, e.nextSibling);
                 } catch {}
               }
             });
