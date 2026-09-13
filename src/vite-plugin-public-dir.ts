@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
  *
- * @version 1.0.4
+ * @version 1.0.5
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -14,7 +14,7 @@
 
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
-import * as np from 'node:path';
+import * as p from 'node:path';
 import autoprefixer from 'autoprefixer';
 import { build } from 'esbuild';
 import { globSync } from 'glob';
@@ -50,7 +50,7 @@ export function standaloneAssetsPlugin(
   let bundleFiles: { fileName: string; source: string }[] = [];
   let bundleMap: Record<string, string> = {};
   const devFiles = new Set<string>();
-  const devCache = np.resolve('.cache/standalone-assets.json');
+  const devCache = p.resolve('.cache/standalone-assets.json');
   let isBuild = false;
 
   const settings = {
@@ -68,7 +68,7 @@ export function standaloneAssetsPlugin(
         log: () => log_('script updated.', '94'),
         outDir: trim(options.script.outDir),
         outExt: '.js',
-        rootDir: np.resolve(trim(options.script.rootDir)),
+        rootDir: p.resolve(trim(options.script.rootDir)),
       },
       {
         compile: (p: string) => compileStylesheet(p),
@@ -77,7 +77,7 @@ export function standaloneAssetsPlugin(
         log: () => log_('stylesheet updated.', '35'),
         outDir: trim(options.stylesheet.outDir),
         outExt: '.css',
-        rootDir: np.resolve(trim(options.stylesheet.rootDir)),
+        rootDir: p.resolve(trim(options.stylesheet.rootDir)),
       },
     ],
   };
@@ -119,19 +119,19 @@ export function standaloneAssetsPlugin(
         continue;
       }
 
-      const relative = np.relative(rootDir, path);
-      const dest = np.resolve(
+      const relative = p.relative(rootDir, path);
+      const dest = p.resolve(
         'public',
         s.outDir,
-        `${relative.slice(0, -np.extname(relative).length)}${s.outExt}`,
+        `${relative.slice(0, -p.extname(relative).length)}${s.outExt}`,
       );
 
       try {
         const result = await s.compile(path);
-        fs.mkdirSync(np.dirname(dest), { recursive: true });
+        fs.mkdirSync(p.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, result);
         devFiles.add(dest);
-        fs.mkdirSync(np.dirname(devCache), { recursive: true });
+        fs.mkdirSync(p.dirname(devCache), { recursive: true });
         fs.writeFileSync(devCache, JSON.stringify([...devFiles]));
       } catch (error: unknown) {
         error instanceof Error && console.error(error.message);
@@ -145,21 +145,21 @@ export function standaloneAssetsPlugin(
 
     if (fs.existsSync(devCache)) {
       try {
-        for (const f of JSON.parse(fs.readFileSync(devCache, 'utf-8'))) {
-          if (!fs.existsSync(f)) {
+        for (const file of JSON.parse(fs.readFileSync(devCache, 'utf-8'))) {
+          if (!fs.existsSync(file)) {
             continue;
           }
 
-          fs.rmSync(f, { force: true });
-          const public_ = np.resolve('public');
+          fs.rmSync(file, { force: true });
+          const public_ = p.resolve('public');
 
           for (
-            let current = np.dirname(f);
+            let current = p.dirname(file);
             current.startsWith(public_) &&
             current !== public_ &&
             fs.existsSync(current) &&
             !fs.readdirSync(current).length;
-            current = np.dirname(current)
+            current = p.dirname(current)
           ) {
             try {
               fs.rmdirSync(current);
@@ -178,15 +178,15 @@ export function standaloneAssetsPlugin(
     for (const s of settings.strategies) {
       const rootDir = s.rootDir;
 
-      for (const p of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      for (const path of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
       })) {
-        const relative = np.relative(rootDir, p);
-        const withoutExt = np
-          .join(s.outDir, relative.slice(0, -np.extname(relative).length))
-          .replaceAll(np.sep, '/');
-        const result = await s.compile(p);
+        const relative = p.relative(rootDir, path);
+        const withoutExt = p
+          .join(s.outDir, relative.slice(0, -p.extname(relative).length))
+          .replaceAll(p.sep, '/');
+        const result = await s.compile(path);
         const outExt = s.outExt;
         const hash = hash_(result);
         const rawPath = `${withoutExt}${outExt}`;
@@ -227,11 +227,11 @@ export function standaloneAssetsPlugin(
   }
 
   function within(path: string, parent: string) {
-    const relative = np.relative(parent, path);
+    const relative = p.relative(parent, path);
     return (
       relative !== '..' &&
-      !relative.startsWith(`..${np.sep}`) &&
-      !np.isAbsolute(relative)
+      !relative.startsWith(`..${p.sep}`) &&
+      !p.isAbsolute(relative)
     );
   }
 
@@ -250,11 +250,11 @@ export function standaloneAssetsPlugin(
       for (const s of strategies) {
         watcher.add(s.rootDir);
 
-        for (const p of globSync(`**/*{${s.exts.join(',')}}`, {
+        for (const path of globSync(`**/*{${s.exts.join(',')}}`, {
           absolute: true,
           cwd: s.rootDir,
         })) {
-          hashes.set(p, hash_(fs.readFileSync(p)));
+          hashes.set(path, hash_(fs.readFileSync(path)));
         }
       }
 

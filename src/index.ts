@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.4
+ * @version 1.0.5
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -42,24 +42,24 @@ export function standaloneAssets(options: Options): AstroIntegration {
             },
           ];
 
-          for (const s of settings) {
-            const { attribute, element, eventName } = s;
+          for (const setting of settings) {
+            const { attribute, element, eventName } = setting;
             hot.on('standalone-assets:' + eventName, (data) => {
-              for (const e of document.querySelectorAll(element + '[' + attribute + '^="/' + data.dir + '/"]')) {
+              for (const target of document.querySelectorAll(element + '[' + attribute + '^="/' + data.dir + '/"]')) {
                 try {
-                  const injected = document.createElement(element);
-                  injected.addEventListener('load', () => e.remove());
+                  const injected = document.createElement(setting.element);
+                  injected.addEventListener('load', () => target.remove());
 
-                  [...e.attributes].filter((a) => a.name !== attribute).forEach((a) => {
-                    const { name, value } = a;
+                  [...target.attributes].filter((a) => a.name !== attribute).forEach((attribute) => {
+                    const { name, value } = attribute;
                     injected.setAttribute(name, value);
                   });
 
-                  const url = new URL(e.getAttribute(attribute) ?? '', location.origin);
+                  const url = new URL(target.getAttribute(attribute) ?? '', location.origin);
                   const { pathname, search, searchParams } = url;
                   searchParams.set('t', Date.now().toString());
                   injected.setAttribute(attribute, pathname + search);
-                  e.parentNode?.insertBefore(injected, e.nextSibling);
+                  target.parentNode?.insertBefore(injected, target.nextSibling);
                 } catch {}
               }
             });
