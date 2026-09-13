@@ -42,12 +42,12 @@ export function standaloneAssets(options: Options): AstroIntegration {
             },
           ];
 
-          for (const setting of settings) {
-            const { attribute, element, eventName } = setting;
+          for (const s of settings) {
+            const { attribute, element, eventName } = s;
             hot.on('standalone-assets:' + eventName, (data) => {
               for (const target of document.querySelectorAll(element + '[' + attribute + '^="/' + data.dir + '/"]')) {
                 try {
-                  const injected = document.createElement(setting.element);
+                  const injected = document.createElement(element);
                   injected.addEventListener('load', () => target.remove());
 
                   [...target.attributes].filter((a) => a.name !== attribute).forEach((attribute) => {
