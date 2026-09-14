@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.5
+ * @version 1.0.6
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane

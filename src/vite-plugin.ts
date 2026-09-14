@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite
  *
- * @version 1.0.5
+ * @version 1.0.6
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -102,12 +102,11 @@ export function standaloneAssetsPlugin(
       sourceMapIncludeSources: !isBuild,
       style: isBuild ? 'compressed' : 'expanded',
     });
+    const { css, sourceMap } = result;
     return (
-      await postcss([autoprefixer()]).process(result.css, {
+      await postcss([autoprefixer()]).process(css, {
         from: path,
-        map: isBuild
-          ? false
-          : { inline: true, prev: result.sourceMap ?? false },
+        map: isBuild ? false : { inline: true, prev: sourceMap ?? false },
       })
     ).css;
   }
@@ -117,18 +116,17 @@ export function standaloneAssetsPlugin(
     bundleMap = {};
 
     for (const s of settings.strategies) {
-      const rootDir = s.rootDir;
+      const { compile, exts, outDir, outExt, rootDir } = s;
 
-      for (const path of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
       })) {
         const relative = p.relative(rootDir, path);
         const withoutExt = p
-          .join(s.outDir, relative.slice(0, -p.extname(relative).length))
+          .join(outDir, relative.slice(0, -p.extname(relative).length))
           .replaceAll(p.sep, '/');
-        const result = await s.compile(path);
-        const outExt = s.outExt;
+        const result = await compile(path);
         const hash = hash_(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
@@ -178,11 +176,12 @@ export function standaloneAssetsPlugin(
       const hashes = new Map<string, string>();
 
       for (const s of strategies) {
-        watcher.add(s.rootDir);
+        const { exts, rootDir } = s;
+        watcher.add(rootDir);
 
-        for (const path of globSync(`**/*{${s.exts.join(',')}}`, {
+        for (const path of globSync(`**/*{${exts.join(',')}}`, {
           absolute: true,
-          cwd: s.rootDir,
+          cwd: rootDir,
         })) {
           hashes.set(path, hash_(fs.readFileSync(path)));
         }
@@ -206,15 +205,17 @@ export function standaloneAssetsPlugin(
 
         timer = setTimeout(async () => {
           for (const s of strategies) {
-            if (!within(path, s.rootDir)) {
+            const { eventName, log, outDir, rootDir } = s;
+
+            if (!within(path, rootDir)) {
               continue;
             }
 
-            s.log();
+            log();
 
             server.ws.send({
-              data: { dir: s.outDir },
-              event: `standalone-assets:${s.eventName}`,
+              data: { dir: outDir },
+              event: `standalone-assets:${eventName}`,
               type: 'custom',
             });
           }
@@ -230,7 +231,7 @@ export function standaloneAssetsPlugin(
 
         for (const s of settings.strategies) {
           const outDir = `/${s.outDir}/`;
-          const outExt = s.outExt;
+          const { compile, contentType, exts, outExt, rootDir } = s;
 
           if (!path.startsWith(outDir) || !path.endsWith(outExt)) {
             continue;
@@ -239,8 +240,8 @@ export function standaloneAssetsPlugin(
           const name = path.slice(outDir.length, -outExt.length);
           let target: string | null = null;
 
-          for (const ext of s.exts) {
-            const candidate = p.resolve(s.rootDir, `${name}${ext}`);
+          for (const ext of exts) {
+            const candidate = p.resolve(rootDir, `${name}${ext}`);
 
             if (fs.existsSync(candidate)) {
               target = candidate;
@@ -253,8 +254,8 @@ export function standaloneAssetsPlugin(
           }
 
           try {
-            const result = await s.compile(target);
-            res.setHeader('Content-Type', s.contentType).end(result);
+            const result = await compile(target);
+            res.setHeader('Content-Type', contentType).end(result);
             return;
           } catch (error: unknown) {
             error instanceof Error && console.error(error);

@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
  *
- * @version 1.0.5
+ * @version 1.0.6
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -113,7 +113,7 @@ export function standaloneAssetsPlugin(
 
   async function emit(path: string) {
     for (const s of settings.strategies) {
-      const rootDir = s.rootDir;
+      const { compile, outDir, outExt, rootDir } = s;
 
       if (!within(path, rootDir)) {
         continue;
@@ -122,12 +122,12 @@ export function standaloneAssetsPlugin(
       const relative = p.relative(rootDir, path);
       const dest = p.resolve(
         'public',
-        s.outDir,
-        `${relative.slice(0, -p.extname(relative).length)}${s.outExt}`,
+        outDir,
+        `${relative.slice(0, -p.extname(relative).length)}${outExt}`,
       );
 
       try {
-        const result = await s.compile(path);
+        const result = await compile(path);
         fs.mkdirSync(p.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, result);
         devFiles.add(dest);
@@ -176,18 +176,17 @@ export function standaloneAssetsPlugin(
     devFiles.clear();
 
     for (const s of settings.strategies) {
-      const rootDir = s.rootDir;
+      const { compile, exts, outDir, outExt, rootDir } = s;
 
-      for (const path of globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
       })) {
         const relative = p.relative(rootDir, path);
         const withoutExt = p
-          .join(s.outDir, relative.slice(0, -p.extname(relative).length))
+          .join(outDir, relative.slice(0, -p.extname(relative).length))
           .replaceAll(p.sep, '/');
-        const result = await s.compile(path);
-        const outExt = s.outExt;
+        const result = await compile(path);
         const hash = hash_(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
@@ -205,9 +204,10 @@ export function standaloneAssetsPlugin(
     devFiles.clear();
 
     for (const s of settings.strategies) {
-      globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+      const { exts, rootDir } = s;
+      globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
-        cwd: s.rootDir,
+        cwd: rootDir,
       }).map(emit);
     }
   }
@@ -248,11 +248,12 @@ export function standaloneAssetsPlugin(
       const hashes = new Map<string, string>();
 
       for (const s of strategies) {
-        watcher.add(s.rootDir);
+        const { rootDir, exts } = s;
+        watcher.add(rootDir);
 
-        for (const path of globSync(`**/*{${s.exts.join(',')}}`, {
+        for (const path of globSync(`**/*{${exts.join(',')}}`, {
           absolute: true,
-          cwd: s.rootDir,
+          cwd: rootDir,
         })) {
           hashes.set(path, hash_(fs.readFileSync(path)));
         }
@@ -276,16 +277,16 @@ export function standaloneAssetsPlugin(
 
         timer = setTimeout(async () => {
           for (const s of strategies) {
-            const rootDir = s.rootDir;
+            const { rootDir, exts, log, outDir, eventName } = s;
 
             if (!within(path, rootDir)) {
               continue;
             }
 
-            s.log();
+            log();
 
             if (path.split(/[\\/]/).pop()?.startsWith('_')) {
-              globSync(`**/[^_]*{${s.exts.join(',')}}`, {
+              globSync(`**/[^_]*{${exts.join(',')}}`, {
                 absolute: true,
                 cwd: rootDir,
               }).map(emit);
@@ -294,8 +295,8 @@ export function standaloneAssetsPlugin(
             }
 
             server.ws.send({
-              data: { dir: s.outDir },
-              event: `standalone-assets:${s.eventName}`,
+              data: { dir: outDir },
+              event: `standalone-assets:${eventName}`,
               type: 'custom',
             });
           }
