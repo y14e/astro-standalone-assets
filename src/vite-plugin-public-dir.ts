@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
  *
- * @version 1.0.6
+ * @version 1.0.7
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -333,13 +333,13 @@ export function standaloneAssetsPlugin(
 const BASE36_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
 
 function generateBase36Hash(data: string | Buffer, length: number): string {
-  let result = '';
+  const chars: string[] = [];
   let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
 
-  while (result.length < length) {
-    result = BASE36_ALPHABET[Number(n % 36n)] + result;
+  while (chars.length < length) {
+    chars.unshift(BASE36_ALPHABET[Number(n % 36n)] ?? '');
     n /= 36n;
   }
 
-  return result;
+  return chars.join('');
 }
