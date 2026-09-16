@@ -53,6 +53,17 @@ export function standaloneAssetsPlugin(
   const devCache = p.resolve('.cache/standalone-assets.json');
   let isBuild = false;
 
+  if (
+    !options.script?.outDir ||
+    !options.script?.rootDir ||
+    !options.stylesheet?.outDir ||
+    !options.stylesheet?.rootDir
+  ) {
+    throw new Error(
+      'Invalid options: script.outDir, script.rootDir, stylesheet.outDir, and stylesheet.rootDir are required.',
+    );
+  }
+
   const settings = {
     hash:
       options.hash === 'embed'
