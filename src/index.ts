@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Integration for Astro
  *
- * @version 1.0.7
+ * @version 1.0.8
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -71,7 +71,7 @@ export function standaloneAssets(options: Options): AstroIntegration {
 
   return {
     hooks: {
-      'astro:config:setup': ({ command, updateConfig, injectScript }) => {
+      'astro:config:setup': ({ command, injectScript, updateConfig }) => {
         updateConfig({
           vite: {
             plugins: [plugin(options)],

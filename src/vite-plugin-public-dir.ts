@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite (Uses the 'public' Directory)
  *
- * @version 1.0.7
+ * @version 1.0.8
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -65,7 +65,7 @@ export function standaloneAssetsPlugin(
         compile: (p: string) => compileScript(p),
         eventName: 'script-update',
         exts: ['.ts', '.js'],
-        log: () => log_('script updated.', '94'),
+        log: () => logger('script updated.', '94'),
         outDir: trim(options.script.outDir),
         outExt: '.js',
         rootDir: p.resolve(trim(options.script.rootDir)),
@@ -74,7 +74,7 @@ export function standaloneAssetsPlugin(
         compile: (p: string) => compileStylesheet(p),
         eventName: 'stylesheet-update',
         exts: ['.scss', '.css'],
-        log: () => log_('stylesheet updated.', '35'),
+        log: () => logger('stylesheet updated.', '35'),
         outDir: trim(options.stylesheet.outDir),
         outExt: '.css',
         rootDir: p.resolve(trim(options.stylesheet.rootDir)),
@@ -187,7 +187,7 @@ export function standaloneAssetsPlugin(
           .join(outDir, relative.slice(0, -p.extname(relative).length))
           .replaceAll(p.sep, '/');
         const result = await compile(path);
-        const hash = hash_(result);
+        const hash = generateHash(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
           settings.hash === 'embed'
@@ -212,11 +212,11 @@ export function standaloneAssetsPlugin(
     }
   }
 
-  function hash_(data: string | Buffer): string {
+  function generateHash(data: string | Buffer): string {
     return generateBase36Hash(data, 8);
   }
 
-  function log_(message: string, colorCode: string) {
+  function logger(message: string, colorCode: string) {
     console.log(
       `\x1b[2m${new Date().toTimeString().slice(0, 8)}\x1b[0m \x1b[${colorCode}m[asset]\x1b[0m ${message}`,
     );
@@ -255,14 +255,14 @@ export function standaloneAssetsPlugin(
           absolute: true,
           cwd: rootDir,
         })) {
-          hashes.set(path, hash_(fs.readFileSync(path)));
+          hashes.set(path, generateHash(fs.readFileSync(path)));
         }
       }
 
       let timer: ReturnType<typeof setTimeout> | undefined;
 
       watcher.on('change', (path) => {
-        const hash = hash_(fs.readFileSync(path));
+        const hash = generateHash(fs.readFileSync(path));
 
         if (hashes.get(path) === hash) {
           return;
