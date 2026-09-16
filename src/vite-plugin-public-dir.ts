@@ -259,7 +259,7 @@ export function standaloneAssetsPlugin(
       const hashes = new Map<string, string>();
 
       for (const s of strategies) {
-        const { rootDir, exts } = s;
+        const { exts, rootDir } = s;
         watcher.add(rootDir);
 
         for (const path of globSync(`**/*{${exts.join(',')}}`, {
@@ -288,7 +288,7 @@ export function standaloneAssetsPlugin(
 
         timer = setTimeout(async () => {
           for (const s of strategies) {
-            const { rootDir, exts, log, outDir, eventName } = s;
+            const { eventName, exts, log, outDir, rootDir } = s;
 
             if (!within(path, rootDir)) {
               continue;
