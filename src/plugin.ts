@@ -1,7 +1,7 @@
 /**
  * Standalone Assets Plugin for Vite
  *
- * @version 1.0.8
+ * @version 1.1.0
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
