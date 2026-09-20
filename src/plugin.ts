@@ -151,7 +151,7 @@ export function standaloneAssetsPlugin(
     }
   }
 
-  function generateHash(data: string | Buffer): string {
+  function generateHash(data: string | Uint8Array): string {
     return generateBase36Hash(data, 8);
   }
 
@@ -306,7 +306,7 @@ export function standaloneAssetsPlugin(
 
 const BASE36_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
 
-function generateBase36Hash(data: string | Buffer, length: number): string {
+function generateBase36Hash(data: string | Uint8Array, length: number): string {
   const chars: string[] = [];
   let n = BigInt(`0x${createHash('sha256').update(data).digest('hex')}`);
 
