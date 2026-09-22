@@ -1,26 +1,8 @@
-/**
- * Standalone Assets Integration for Astro
- *
- * @version 1.1.0
- * @author Yusuke Kamiyamane
- * @license MIT
- * @copyright Copyright (c) Yusuke Kamiyamane
- * @see {@link https://github.com/y14e/astro-standalone-assets}
- */
-
-// -----------------------------------------------------------------------------
-// Imports
-// -----------------------------------------------------------------------------
-
 import type { AstroIntegration } from 'astro';
 import {
   type StandaloneAssetsPluginOptions as Options,
   standaloneAssetsPlugin as plugin,
 } from './plugin';
-
-// -----------------------------------------------------------------------------
-// APIs
-// -----------------------------------------------------------------------------
 
 export function standaloneAssets(options: Options): AstroIntegration {
   function hmr(): string {

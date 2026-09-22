@@ -1,17 +1,3 @@
-/**
- * Standalone Assets Plugin for Vite
- *
- * @version 1.1.0
- * @author Yusuke Kamiyamane
- * @license MIT
- * @copyright Copyright (c) Yusuke Kamiyamane
- * @see {@link https://github.com/y14e/astro-standalone-assets}
- */
-
-// -----------------------------------------------------------------------------
-// Imports
-// -----------------------------------------------------------------------------
-
 import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as p from 'node:path';
@@ -21,10 +7,6 @@ import { globSync } from 'glob';
 import postcss from 'postcss';
 import { compileAsync } from 'sass';
 import type { Plugin } from 'vite';
-
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
 
 export interface StandaloneAssetsPluginOptions {
   hash?: 'embed' | 'query';
@@ -37,10 +19,6 @@ export interface StandaloneAssetsPluginOptions {
     rootDir: string;
   };
 }
-
-// -----------------------------------------------------------------------------
-// APIs
-// -----------------------------------------------------------------------------
 
 export function standaloneAssetsPlugin(
   options: StandaloneAssetsPluginOptions,
@@ -299,10 +277,6 @@ export function standaloneAssetsPlugin(
     },
   };
 }
-
-// -----------------------------------------------------------------------------
-// Utils
-// -----------------------------------------------------------------------------
 
 const BASE36_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
 
