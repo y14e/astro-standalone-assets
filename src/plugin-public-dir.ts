@@ -101,8 +101,8 @@ export function standaloneAssetsPlugin(
   }
 
   async function emit(path: string) {
-    for (const s of settings.strategies) {
-      const { compile, outDir, outExt, rootDir } = s;
+    for (const strategy of settings.strategies) {
+      const { compile, outDir, outExt, rootDir } = strategy;
 
       if (!within(path, rootDir)) {
         continue;
@@ -164,8 +164,8 @@ export function standaloneAssetsPlugin(
 
     devFiles.clear();
 
-    for (const s of settings.strategies) {
-      const { compile, exts, outDir, outExt, rootDir } = s;
+    for (const strategy of settings.strategies) {
+      const { compile, exts, outDir, outExt, rootDir } = strategy;
 
       for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
@@ -192,8 +192,8 @@ export function standaloneAssetsPlugin(
   async function prepareDev(): Promise<void> {
     devFiles.clear();
 
-    for (const s of settings.strategies) {
-      const { exts, rootDir } = s;
+    for (const strategy of settings.strategies) {
+      const { exts, rootDir } = strategy;
       globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
@@ -236,8 +236,8 @@ export function standaloneAssetsPlugin(
       const watcher = server.watcher;
       const hashes = new Map<string, string>();
 
-      for (const s of strategies) {
-        const { exts, rootDir } = s;
+      for (const strategy of strategies) {
+        const { exts, rootDir } = strategy;
         watcher.add(rootDir);
 
         for (const path of globSync(`**/*{${exts.join(',')}}`, {
@@ -265,8 +265,8 @@ export function standaloneAssetsPlugin(
         }
 
         timer = setTimeout(async () => {
-          for (const s of strategies) {
-            const { eventName, exts, log, outDir, rootDir } = s;
+          for (const strategy of strategies) {
+            const { eventName, exts, log, outDir, rootDir } = strategy;
 
             if (!within(path, rootDir)) {
               continue;

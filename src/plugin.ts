@@ -104,8 +104,8 @@ export function standaloneAssetsPlugin(
     bundleFiles = [];
     bundleMap = {};
 
-    for (const s of settings.strategies) {
-      const { compile, exts, outDir, outExt, rootDir } = s;
+    for (const strategy of settings.strategies) {
+      const { compile, exts, outDir, outExt, rootDir } = strategy;
 
       for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
@@ -164,8 +164,8 @@ export function standaloneAssetsPlugin(
       const watcher = server.watcher;
       const hashes = new Map<string, string>();
 
-      for (const s of strategies) {
-        const { exts, rootDir } = s;
+      for (const strategy of strategies) {
+        const { exts, rootDir } = strategy;
         watcher.add(rootDir);
 
         for (const path of globSync(`**/*{${exts.join(',')}}`, {
@@ -193,8 +193,8 @@ export function standaloneAssetsPlugin(
         }
 
         timer = setTimeout(async () => {
-          for (const s of strategies) {
-            const { eventName, log, outDir, rootDir } = s;
+          for (const strategy of strategies) {
+            const { eventName, log, outDir, rootDir } = strategy;
 
             if (!within(path, rootDir)) {
               continue;
@@ -218,9 +218,9 @@ export function standaloneAssetsPlugin(
           return next();
         }
 
-        for (const s of settings.strategies) {
-          const outDir = `/${s.outDir}/`;
-          const { compile, contentType, exts, outExt, rootDir } = s;
+        for (const strategy of settings.strategies) {
+          const outDir = `/${strategy.outDir}/`;
+          const { compile, contentType, exts, outExt, rootDir } = strategy;
 
           if (!path.startsWith(outDir) || !path.endsWith(outExt)) {
             continue;
