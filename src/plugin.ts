@@ -7,22 +7,9 @@ import { globSync } from 'glob';
 import postcss from 'postcss';
 import { compileAsync } from 'sass';
 import type { Plugin } from 'vite';
+import type { StandaloneAssetsPluginOptions as Options } from './types';
 
-export interface StandaloneAssetsPluginOptions {
-  hash?: 'embed' | 'query';
-  script: {
-    outDir: string;
-    rootDir: string;
-  };
-  stylesheet: {
-    outDir: string;
-    rootDir: string;
-  };
-}
-
-export function standaloneAssetsPlugin(
-  options: StandaloneAssetsPluginOptions,
-): Plugin {
+export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   const virtualModuleId = 'virtual:standalone-assets';
   const resolvedVirtualModuleId = `\0${virtualModuleId}`;
   let bundleFiles: { fileName: string; source: string }[] = [];
@@ -35,9 +22,7 @@ export function standaloneAssetsPlugin(
     !options.stylesheet?.outDir ||
     !options.stylesheet?.rootDir
   ) {
-    throw new Error(
-      'Invalid options: script.outDir, script.rootDir, stylesheet.outDir, and stylesheet.rootDir are required.',
-    );
+    throw new Error('Invalid options: all dirs are required.');
   }
 
   const settings = {

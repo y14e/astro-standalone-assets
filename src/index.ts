@@ -1,11 +1,9 @@
 import type { AstroIntegration } from 'astro';
 import { hmr } from './hmr';
-import {
-  type StandaloneAssetsPluginOptions as Options,
-  standaloneAssetsPlugin as plugin,
-} from './plugin';
+import { standaloneAssetsPlugin as plugin } from './plugin';
+import type { StandaloneAssetsPluginOptions as Options } from './types';
 
-export function standaloneAssets(options: Options): AstroIntegration {
+export function standaloneAssets(options: Partial<Options>): AstroIntegration {
   return {
     hooks: {
       'astro:config:setup': ({ command, injectScript, updateConfig }) => {
@@ -16,3 +14,5 @@ export function standaloneAssets(options: Options): AstroIntegration {
     name: 'standalone-assets',
   };
 }
+
+export type { Options as StandaloneAssetsPluginOptions };
