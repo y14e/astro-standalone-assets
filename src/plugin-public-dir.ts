@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as p from 'node:path';
 import autoprefixer from 'autoprefixer';
@@ -8,6 +7,7 @@ import postcss from 'postcss';
 import { compileAsync } from 'sass';
 import type { Plugin } from 'vite';
 import type { StandaloneAssetsPluginOptions as Options } from './types';
+import { generateBase36Hash } from './utils';
 
 export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   const virtualModuleId = 'virtual:standalone-assets';
@@ -298,18 +298,4 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       }
     },
   };
-}
-
-const BASE36_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
-
-function generateBase36Hash(data: string | Uint8Array, length: number): string {
-  const chars: string[] = [];
-  let n = BigInt(`0x${createHash('sha512').update(data).digest('hex')}`);
-
-  while (chars.length < length) {
-    chars.unshift(BASE36_ALPHABET[Number(n % 36n)] ?? '');
-    n /= 36n;
-  }
-
-  return chars.join('');
 }
