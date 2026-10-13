@@ -107,7 +107,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         devFiles.add(dest);
         fs.mkdirSync(p.dirname(devCache), { recursive: true });
         fs.writeFileSync(devCache, JSON.stringify([...devFiles]));
-      } catch (error: unknown) {
+      } catch (error) {
         error instanceof Error && console.error(error.message);
       }
     }
@@ -278,9 +278,9 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       });
     },
     generateBundle() {
-      for (const { fileName, source } of bundleFiles) {
-        this.emitFile({ fileName, source, type: 'asset' });
-      }
+      bundleFiles.map(({ fileName, source }) =>
+        this.emitFile({ fileName, source, type: 'asset' }),
+      );
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {

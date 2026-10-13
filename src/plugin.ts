@@ -231,7 +231,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
             const result = await compile(target);
             res.setHeader('Content-Type', contentType).end(result);
             return;
-          } catch (error: unknown) {
+          } catch (error) {
             error instanceof Error && console.error(error);
             return next();
           }
@@ -241,9 +241,9 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       });
     },
     generateBundle() {
-      for (const { fileName, source } of bundleFiles) {
-        this.emitFile({ fileName, source, type: 'asset' });
-      }
+      bundleFiles.map(({ fileName, source }) =>
+        this.emitFile({ fileName, source, type: 'asset' }),
+      );
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {
