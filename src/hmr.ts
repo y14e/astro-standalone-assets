@@ -24,16 +24,10 @@ export function hmr(): string {
               try {
                 const injected = document.createElement(element);
                 injected.addEventListener('load', () => target.remove());
-
-                [...target.attributes].filter((a) => a.name !== attribute).forEach((attribute) => {
-                  const { name, value } = attribute;
-                  injected.setAttribute(name, value);
-                });
-
-                const url = new URL(target.getAttribute(attribute) ?? '', location.origin);
-                const { pathname, search, searchParams } = url;
+                [...target.attributes].filter((a) => a.name !== attribute).map(({ name, value }) => injected.setAttribute(name, value));
+                const { pathname, search, searchParams } = new URL(target.getAttribute(attribute) ?? '', location.origin);
                 searchParams.set('t', Date.now().toString());
-                injected.setAttribute(attribute, pathname + search);
+                injected.setAttribute(attribute, pathname + '?' + searchParams.toString());
                 target.parentNode?.insertBefore(injected, target.nextSibling);
               } catch {}
             }
