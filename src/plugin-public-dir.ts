@@ -86,9 +86,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   }
 
   async function emit(path: string) {
-    for (const strategy of settings.strategies) {
-      const { compile, outDir, outExt, rootDir } = strategy;
-
+    for (const { compile, outDir, outExt, rootDir } of settings.strategies) {
       if (!within(path, rootDir)) {
         continue;
       }
@@ -149,9 +147,13 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
 
     devFiles.clear();
 
-    for (const strategy of settings.strategies) {
-      const { compile, exts, outDir, outExt, rootDir } = strategy;
-
+    for (const {
+      compile,
+      exts,
+      outDir,
+      outExt,
+      rootDir,
+    } of settings.strategies) {
       for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
@@ -177,8 +179,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   async function prepareDev(): Promise<void> {
     devFiles.clear();
 
-    for (const strategy of settings.strategies) {
-      const { exts, rootDir } = strategy;
+    for (const { exts, rootDir } of settings.strategies) {
       globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
@@ -221,8 +222,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       const watcher = server.watcher;
       const hashes = new Map<string, string>();
 
-      for (const strategy of strategies) {
-        const { exts, rootDir } = strategy;
+      for (const { exts, rootDir } of strategies) {
         watcher.add(rootDir);
 
         for (const path of globSync(`**/*{${exts.join(',')}}`, {
@@ -250,9 +250,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         }
 
         timer = setTimeout(async () => {
-          for (const strategy of strategies) {
-            const { eventName, exts, log, outDir, rootDir } = strategy;
-
+          for (const { eventName, exts, log, outDir, rootDir } of strategies) {
             if (!within(path, rootDir)) {
               continue;
             }
