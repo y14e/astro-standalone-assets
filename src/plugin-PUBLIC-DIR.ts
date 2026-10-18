@@ -24,7 +24,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     !options.stylesheet?.outDir ||
     !options.stylesheet?.rootDir
   ) {
-    throw new Error('Invalid options: all dirs are required.');
+    throw new Error('Invalid options. All dirs are required.');
   }
 
   const settings = {
