@@ -239,7 +239,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
             res.setHeader('Content-Type', contentType).end(result);
             return;
           } catch (error) {
-            error instanceof Error && console.error(error);
+            error instanceof Error && console.error(error.message);
             return next();
           }
         }
