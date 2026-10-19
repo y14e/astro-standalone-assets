@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as p from 'node:path';
+import { generateBase36Hash } from '@y14e/basen';
 import autoprefixer from 'autoprefixer';
 import { build } from 'esbuild';
 import { globSync } from 'glob';
@@ -7,7 +8,6 @@ import postcss from 'postcss';
 import { compileAsync } from 'sass';
 import type { Plugin } from 'vite';
 import type { StandaloneAssetsPluginOptions as Options } from './types';
-import { generateBase36Hash } from './utils';
 
 export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   const virtualModuleId = 'virtual:standalone-assets';
@@ -187,8 +187,8 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     }
   }
 
-  function generateHash(data: string | Uint8Array): string {
-    return generateBase36Hash(data, 8);
+  async function generateHash(data: string | Uint8Array): Promise<string> {
+    return await generateBase36Hash(data, 8);
   }
 
   function logger(message: string, colorCode: string) {
@@ -217,7 +217,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     configResolved(config) {
       isBuild = config.command === 'build';
     },
-    configureServer(server) {
+    async configureServer(server) {
       const strategies = settings.strategies;
       const watcher = server.watcher;
       const hashes = new Map<string, string>();
@@ -229,14 +229,14 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
           absolute: true,
           cwd: rootDir,
         })) {
-          hashes.set(path, generateHash(fs.readFileSync(path)));
+          hashes.set(path, await generateHash(fs.readFileSync(path)));
         }
       }
 
       let timer: ReturnType<typeof setTimeout> | undefined;
 
-      watcher.on('change', (path) => {
-        const hash = generateHash(fs.readFileSync(path));
+      watcher.on('change', async (path) => {
+        const hash = await generateHash(fs.readFileSync(path));
 
         if (hashes.get(path) === hash) {
           return;

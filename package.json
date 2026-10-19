@@ -1,8 +1,9 @@
 {
   "name": "default",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "devDependencies": {
+    "@y14e/basen": "^1.0.14",
     "autoprefixer": "^10.5.4",
     "glob": "^13.0.6",
     "postcss": "^8.5.26",
