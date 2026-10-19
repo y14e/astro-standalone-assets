@@ -105,7 +105,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
           .join(outDir, relative.slice(0, -p.extname(relative).length))
           .replaceAll(p.sep, '/');
         const result = await compile(path);
-        const hash = generateHash(result);
+        const hash = await generateHash(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath =
           settings.hash === 'embed'
