@@ -169,7 +169,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       watcher.on('change', async (path) => {
         const hash = await generateHash(fs.readFileSync(path));
 
-        if (hashes.get(path) === hash) {
+        if (hash === hashes.get(path)) {
           return;
         }
 
