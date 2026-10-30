@@ -26,12 +26,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   }
 
   const settings = {
-    hash:
-      options.hash === 'embed'
-        ? 'embed'
-        : options.hash === 'query'
-          ? 'query'
-          : 'none',
+    hash: options.hash === 'embed' ? 'embed' : options.hash === 'query' ? 'query' : 'none',
     strategies: [
       {
         compile: (p: string) => compileScript(p),
@@ -89,13 +84,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     bundleFiles = [];
     bundleMap = {};
 
-    for (const {
-      compile,
-      exts,
-      outDir,
-      outExt,
-      rootDir,
-    } of settings.strategies) {
+    for (const { compile, exts, outDir, outExt, rootDir } of settings.strategies) {
       for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
@@ -107,13 +96,9 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         const result = await compile(path);
         const hash = await generateHash(result);
         const rawPath = `${withoutExt}${outExt}`;
-        const bundlePath =
-          settings.hash === 'embed'
-            ? `${withoutExt}.${hash}${outExt}`
-            : rawPath;
+        const bundlePath = settings.hash === 'embed' ? `${withoutExt}.${hash}${outExt}` : rawPath;
         bundleFiles.push({ fileName: bundlePath, source: result });
-        bundleMap[`/${rawPath}`] =
-          `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
+        bundleMap[`/${rawPath}`] = `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
       }
     }
   }
@@ -134,11 +119,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
 
   function within(path: string, parent: string) {
     const relative = p.relative(parent, path);
-    return (
-      relative !== '..' &&
-      !relative.startsWith(`..${p.sep}`) &&
-      !p.isAbsolute(relative)
-    );
+    return relative !== '..' && !relative.startsWith(`..${p.sep}`) && !p.isAbsolute(relative);
   }
 
   return {
@@ -156,10 +137,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       for (const { exts, rootDir } of strategies) {
         watcher.add(rootDir);
 
-        for (const path of globSync(`**/*{${exts.join(',')}}`, {
-          absolute: true,
-          cwd: rootDir,
-        })) {
+        for (const path of globSync(`**/*{${exts.join(',')}}`, { absolute: true, cwd: rootDir })) {
           hashes.set(path, await generateHash(fs.readFileSync(path)));
         }
       }
@@ -204,14 +182,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
           return next();
         }
 
-        for (let {
-          compile,
-          contentType,
-          exts,
-          outExt,
-          outDir,
-          rootDir,
-        } of settings.strategies) {
+        for (let { compile, contentType, exts, outExt, outDir, rootDir } of settings.strategies) {
           outDir = `/${outDir}/`;
 
           if (!path.startsWith(outDir) || !path.endsWith(outExt)) {
@@ -248,9 +219,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       });
     },
     generateBundle() {
-      bundleFiles.map(({ fileName, source }) =>
-        this.emitFile({ fileName, source, type: 'asset' }),
-      );
+      bundleFiles.map(({ fileName, source }) => this.emitFile({ fileName, source, type: 'asset' }));
     },
     load(id) {
       if (id === resolvedVirtualModuleId) {
