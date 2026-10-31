@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "type": "module",
   "devDependencies": {
     "@y14e/basen": "^1.0.14",

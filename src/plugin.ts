@@ -25,8 +25,9 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     throw new Error('Invalid options. all dirs are required.');
   }
 
+  const hash = options.hash?.toLowerCase() ?? 'none';
   const settings = {
-    hash: options.hash === 'embed' ? 'embed' : options.hash === 'query' ? 'query' : 'none',
+    hash: ['embed', 'query'].includes(hash) ? hash : 'none',
     strategies: [
       {
         compile: (p: string) => compileScript(p),
