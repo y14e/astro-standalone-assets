@@ -79,7 +79,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     ).css;
   }
 
-  async function emit(path: string) {
+  async function emit(path: string): Promise<void> {
     for (const { compile, outDir, outExt, rootDir } of settings.strategies) {
       if (!within(path, rootDir)) {
         continue;
@@ -172,17 +172,17 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     return await generateBase36Hash(data, 8);
   }
 
-  function logger(message: string, colorCode: string) {
+  function logger(message: string, colorCode: string): void {
     console.log(
       `\x1b[2m${new Date().toTimeString().slice(0, 8)}\x1b[0m \x1b[${colorCode}m[asset]\x1b[0m ${message}`,
     );
   }
 
-  function trim(string: string) {
+  function trim(string: string): string {
     return string.replace(/^\/+|\/+$/g, '');
   }
 
-  function within(path: string, parent: string) {
+  function within(path: string, parent: string): boolean {
     const relative = p.relative(parent, path);
     return relative !== '..' && !relative.startsWith(`..${p.sep}`) && !p.isAbsolute(relative);
   }
