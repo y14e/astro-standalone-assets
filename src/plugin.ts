@@ -166,7 +166,6 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
             }
 
             log();
-
             server.ws.send({
               data: { dir: outDir },
               event: `standalone-assets:${eventName}`,
