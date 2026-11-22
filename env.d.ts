@@ -1,5 +1,5 @@
 /// <reference types='astro/client' />
 
 declare module 'virtual:standalone-assets' {
-  export function asset(path: string): string;
+  export function asset(pathname: string): string;
 }

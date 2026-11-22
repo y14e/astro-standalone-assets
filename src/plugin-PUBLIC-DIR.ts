@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import * as p from 'node:path';
+import * as path from 'node:path';
 import { generateBase36Hash } from '@y14e/basen';
 import autoprefixer from 'autoprefixer';
 import { build } from 'esbuild';
@@ -15,7 +15,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   let bundleFiles: { fileName: string; source: string }[] = [];
   let bundleMap: Record<string, string> = {};
   const devFiles = new Set<string>();
-  const devCache = p.resolve('.cache/standalone-assets.json');
+  const devCache = path.resolve('.cache/standalone-assets.json');
   let isBuild = false;
 
   if (
@@ -38,7 +38,7 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         log: () => logger('script updated.', '94'),
         outDir: trim(options.script.outDir),
         outExt: '.js',
-        rootDir: p.resolve(trim(options.script.rootDir)),
+        rootDir: path.resolve(trim(options.script.rootDir)),
       },
       {
         compile: (p: string) => compileStylesheet(p),
@@ -47,17 +47,17 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         log: () => logger('stylesheet updated.', '35'),
         outDir: trim(options.stylesheet.outDir),
         outExt: '.css',
-        rootDir: p.resolve(trim(options.stylesheet.rootDir)),
+        rootDir: path.resolve(trim(options.stylesheet.rootDir)),
       },
     ],
   };
 
-  async function compileScript(path: string): Promise<string> {
+  async function compileScript(pathname: string): Promise<string> {
     return (
       (
         await build({
           bundle: true,
-          entryPoints: [path],
+          entryPoints: [pathname],
           minify: isBuild,
           platform: 'browser',
           write: false,
@@ -66,38 +66,38 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     );
   }
 
-  async function compileStylesheet(path: string): Promise<string> {
-    const result = await compileAsync(path, {
+  async function compileStylesheet(pathname: string): Promise<string> {
+    const result = await compileAsync(pathname, {
       sourceMap: !isBuild,
       style: isBuild ? 'compressed' : 'expanded',
     });
     return (
       await postcss([autoprefixer()]).process(result.css, {
-        from: path,
+        from: pathname,
         map: isBuild ? false : { inline: true, prev: result.sourceMap ?? false },
       })
     ).css;
   }
 
-  async function emit(path: string): Promise<void> {
+  async function emit(pathname: string): Promise<void> {
     for (const { compile, outDir, outExt, rootDir } of settings.strategies) {
-      if (!within(path, rootDir)) {
+      if (!within(pathname, rootDir)) {
         continue;
       }
 
-      const relative = p.relative(rootDir, path);
-      const dest = p.resolve(
+      const relative = path.relative(rootDir, pathname);
+      const dest = path.resolve(
         'public',
         outDir,
-        `${relative.slice(0, -p.extname(relative).length)}${outExt}`,
+        `${relative.slice(0, -path.extname(relative).length)}${outExt}`,
       );
 
       try {
-        const result = await compile(path);
-        fs.mkdirSync(p.dirname(dest), { recursive: true });
+        const result = await compile(pathname);
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
         fs.writeFileSync(dest, result);
         devFiles.add(dest);
-        fs.mkdirSync(p.dirname(devCache), { recursive: true });
+        fs.mkdirSync(path.dirname(devCache), { recursive: true });
         fs.writeFileSync(devCache, JSON.stringify([...devFiles]));
       } catch (error) {
         error instanceof Error && console.error(error.message);
@@ -117,15 +117,15 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
           }
 
           fs.rmSync(file, { force: true });
-          const public_ = p.resolve('public');
+          const public_ = path.resolve('public');
 
           for (
-            let current = p.dirname(file);
+            let current = path.dirname(file);
             current.startsWith(public_) &&
             current !== public_ &&
             fs.existsSync(current) &&
             !fs.readdirSync(current).length;
-            current = p.dirname(current)
+            current = path.dirname(current)
           ) {
             try {
               fs.rmdirSync(current);
@@ -142,15 +142,15 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     devFiles.clear();
 
     for (const { compile, exts, outDir, outExt, rootDir } of settings.strategies) {
-      for (const path of globSync(`**/[^_]*{${exts.join(',')}}`, {
+      for (const pathname of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
         cwd: rootDir,
       })) {
-        const relative = p.relative(rootDir, path);
-        const withoutExt = p
-          .join(outDir, relative.slice(0, -p.extname(relative).length))
-          .replaceAll(p.sep, '/');
-        const result = await compile(path);
+        const relative = path.relative(rootDir, pathname);
+        const withoutExt = path
+          .join(outDir, relative.slice(0, -path.extname(relative).length))
+          .replaceAll(path.sep, '/');
+        const result = await compile(pathname);
         const hash = await generateHash(result);
         const rawPath = `${withoutExt}${outExt}`;
         const bundlePath = settings.hash === 'embed' ? `${withoutExt}.${hash}${outExt}` : rawPath;
@@ -182,9 +182,9 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     return string.replace(/^\/+|\/+$/g, '');
   }
 
-  function within(path: string, parent: string): boolean {
-    const relative = p.relative(parent, path);
-    return relative !== '..' && !relative.startsWith(`..${p.sep}`) && !p.isAbsolute(relative);
+  function within(pathname: string, parent: string): boolean {
+    const relative = path.relative(parent, pathname);
+    return relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
   }
 
   return {
@@ -202,21 +202,24 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       for (const { exts, rootDir } of strategies) {
         watcher.add(rootDir);
 
-        for (const path of globSync(`**/*{${exts.join(',')}}`, { absolute: true, cwd: rootDir })) {
-          hashes.set(path, await generateHash(fs.readFileSync(path)));
+        for (const pathname of globSync(`**/*{${exts.join(',')}}`, {
+          absolute: true,
+          cwd: rootDir,
+        })) {
+          hashes.set(pathname, await generateHash(fs.readFileSync(pathname)));
         }
       }
 
       let timer: ReturnType<typeof setTimeout> | undefined;
 
-      watcher.on('change', async (path) => {
-        const hash = await generateHash(fs.readFileSync(path));
+      watcher.on('change', async (pathname) => {
+        const hash = await generateHash(fs.readFileSync(pathname));
 
-        if (hash === hashes.get(path)) {
+        if (hash === hashes.get(pathname)) {
           return;
         }
 
-        hashes.set(path, hash);
+        hashes.set(pathname, hash);
 
         if (timer !== undefined) {
           clearTimeout(timer);
@@ -225,16 +228,16 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
 
         timer = setTimeout(async () => {
           for (const { eventName, exts, log, outDir, rootDir } of strategies) {
-            if (!within(path, rootDir)) {
+            if (!within(pathname, rootDir)) {
               continue;
             }
 
             log();
 
-            if (path.split(/[\\/]/).pop()?.startsWith('_')) {
+            if (pathname.split(/[\\/]/).pop()?.startsWith('_')) {
               globSync(`**/[^_]*{${exts.join(',')}}`, { absolute: true, cwd: rootDir }).map(emit);
             } else {
-              await emit(path);
+              await emit(pathname);
             }
 
             server.ws.send({
@@ -252,8 +255,8 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     load(id) {
       if (id === resolvedVirtualModuleId) {
         return `
-          export function asset(path) {
-            return ${isBuild ? JSON.stringify(bundleMap) : '{}'}[path] ?? path;
+          export function asset(pathname) {
+            return ${isBuild ? JSON.stringify(bundleMap) : '{}'}[pathname] ?? pathname;
           }
         `;
       }
