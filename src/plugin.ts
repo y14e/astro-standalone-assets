@@ -17,10 +17,10 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
   let isBuild = false;
 
   if (
-    !options.script?.outDir ||
-    !options.script?.rootDir ||
-    !options.stylesheet?.outDir ||
-    !options.stylesheet?.rootDir
+    !options.script?.distDir ||
+    !options.script?.srcDir ||
+    !options.stylesheet?.distDir ||
+    !options.stylesheet?.srcDir
   ) {
     throw new Error('Invalid options. all dirs are required.');
   }
@@ -32,22 +32,22 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       {
         compile: (p: string) => compileScript(p),
         contentType: 'text/javascript',
+        distDir: trim(options.script.distDir),
+        distExt: '.js',
         eventName: 'script-update',
         exts: ['.ts', '.js'],
         log: () => logger('script updated.', '94'),
-        outDir: trim(options.script.outDir),
-        outExt: '.js',
-        rootDir: path.resolve(trim(options.script.rootDir)),
+        srcDir: path.resolve('src', trim(options.script.srcDir)),
       },
       {
         compile: (p: string) => compileStylesheet(p),
         contentType: 'text/css',
+        distDir: trim(options.stylesheet.distDir),
+        distExt: '.css',
         eventName: 'stylesheet-update',
         exts: ['.scss', '.css'],
         log: () => logger('stylesheet updated.', '35'),
-        outDir: trim(options.stylesheet.outDir),
-        outExt: '.css',
-        rootDir: path.resolve(trim(options.stylesheet.rootDir)),
+        srcDir: path.resolve('src', trim(options.stylesheet.srcDir)),
       },
     ],
   };
@@ -85,19 +85,19 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
     bundleFiles = [];
     bundleMap = {};
 
-    for (const { compile, exts, outDir, outExt, rootDir } of settings.strategies) {
+    for (const { compile, distDir, distExt, exts, srcDir } of settings.strategies) {
       for (const pathName of globSync(`**/[^_]*{${exts.join(',')}}`, {
         absolute: true,
-        cwd: rootDir,
+        cwd: srcDir,
       })) {
-        const relative = path.relative(rootDir, pathName);
+        const relative = path.relative(srcDir, pathName);
         const withoutExt = path
-          .join(outDir, relative.slice(0, -path.extname(relative).length))
+          .join(distDir, relative.slice(0, -path.extname(relative).length))
           .replaceAll(path.sep, '/');
         const result = await compile(pathName);
         const hash = await generateHash(result);
-        const rawPath = `${withoutExt}${outExt}`;
-        const bundlePath = settings.hash === 'embed' ? `${withoutExt}.${hash}${outExt}` : rawPath;
+        const rawPath = `${withoutExt}${distExt}`;
+        const bundlePath = settings.hash === 'embed' ? `${withoutExt}.${hash}${distExt}` : rawPath;
         bundleFiles.push({ fileName: bundlePath, source: result });
         bundleMap[`/${rawPath}`] = `/${bundlePath + (settings.hash === 'query' ? `?${hash}` : '')}`;
       }
@@ -135,12 +135,12 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
       const watcher = server.watcher;
       const hashes = new Map<string, string>();
 
-      for (const { exts, rootDir } of strategies) {
-        watcher.add(rootDir);
+      for (const { exts, srcDir } of strategies) {
+        watcher.add(srcDir);
 
         for (const pathName of globSync(`**/*{${exts.join(',')}}`, {
           absolute: true,
-          cwd: rootDir,
+          cwd: srcDir,
         })) {
           hashes.set(pathName, await generateHash(fs.readFileSync(pathName)));
         }
@@ -163,14 +163,14 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
         }
 
         timer = setTimeout(async () => {
-          for (const { eventName, log, outDir, rootDir } of strategies) {
-            if (!within(pathName, rootDir)) {
+          for (const { distDir, eventName, log, srcDir } of strategies) {
+            if (!within(pathName, srcDir)) {
               continue;
             }
 
             log();
             server.ws.send({
-              data: { dir: outDir },
+              data: { dir: distDir },
               event: `standalone-assets:${eventName}`,
               type: 'custom',
             });
@@ -185,18 +185,18 @@ export function standaloneAssetsPlugin(options: Partial<Options>): Plugin {
           return next();
         }
 
-        for (let { compile, contentType, exts, outExt, outDir, rootDir } of settings.strategies) {
-          outDir = `/${outDir}/`;
+        for (let { compile, contentType, distExt, distDir, exts, srcDir } of settings.strategies) {
+          distDir = `/${distDir}/`;
 
-          if (!pathName.startsWith(outDir) || !pathName.endsWith(outExt)) {
+          if (!pathName.startsWith(distDir) || !pathName.endsWith(distExt)) {
             continue;
           }
 
-          const name = pathName.slice(outDir.length, -outExt.length);
+          const name = pathName.slice(distDir.length, -distExt.length);
           let target: string | null = null;
 
           for (const ext of exts) {
-            const candidate = path.resolve(rootDir, `${name}${ext}`);
+            const candidate = path.resolve(srcDir, `${name}${ext}`);
 
             if (fs.existsSync(candidate)) {
               target = candidate;

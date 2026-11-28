@@ -8,12 +8,12 @@ export default defineConfig({
     standaloneAssets({
       hash: 'embed',
       script: {
-        outDir: 'assets/scripts',
-        rootDir: 'src/scripts',
+        distDir: 'assets/scripts',
+        srcDir: 'scripts',
       },
       stylesheet: {
-        outDir: 'assets/stylesheets',
-        rootDir: 'src/stylesheets',
+        distDir: 'assets/stylesheets',
+        srcDir: 'stylesheets',
       },
     }),
   ],
